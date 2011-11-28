@@ -10,7 +10,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.neo4j.test</groupId>
   <artifactId>neo4j-lucene-index-tests</artifactId>
-  <version>1.5</version>
+  <version>1.6-SNAPSHOT</version>
   <name>Bigger tests for Neo4j Lucene Index</name>
 
   <properties>
