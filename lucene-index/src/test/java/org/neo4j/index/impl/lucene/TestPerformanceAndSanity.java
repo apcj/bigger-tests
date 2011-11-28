@@ -135,7 +135,7 @@ public class TestPerformanceAndSanity extends AbstractLuceneIndexTest
             {
                 public void run()
                 {
-                    for ( int i = 0; System.currentTimeMillis() - time < 60*1000*10; i++ )
+                    for ( int i = 0; System.currentTimeMillis() - time < 60*1000*2; i++ )
                     {
                         if ( i%10 == 0 )
                         {
@@ -176,11 +176,7 @@ public class TestPerformanceAndSanity extends AbstractLuceneIndexTest
                             }
                             else
                             {
-                                int size = IteratorUtil.count( (Iterator<Node>) index.get( "key", "value5" ) );
-                                if ( thread == 0 )
-                                {
-                                    System.out.println( "hit size:" + size );
-                                }
+                                IteratorUtil.count( (Iterator<Node>) index.get( "key", "value5" ) );
                             }
                         }
                         else

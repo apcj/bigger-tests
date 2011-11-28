@@ -27,8 +27,8 @@ import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
-import org.neo4j.index.Neo4jTestCase;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
+import org.neo4j.kernel.impl.util.FileUtils;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 public class TestRecovery
@@ -37,7 +37,7 @@ public class TestRecovery
     public void testHardCoreRecovery() throws Exception
     {
         String path = "target/hcdb";
-        Neo4jTestCase.deleteFileOrDirectory( new File( path ) );
+        FileUtils.deleteRecursively( new File( path ) );
         Process process = Runtime.getRuntime().exec( new String[] {
                 "java", "-cp", System.getProperty( "java.class.path" ),
                 Inserter.class.getName(), path

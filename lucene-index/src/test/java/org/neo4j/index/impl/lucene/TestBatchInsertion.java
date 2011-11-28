@@ -33,18 +33,18 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.index.BatchInserterIndex;
 import org.neo4j.graphdb.index.BatchInserterIndexProvider;
-import org.neo4j.index.Neo4jTestCase;
 import org.neo4j.kernel.impl.batchinsert.BatchInserter;
 import org.neo4j.kernel.impl.batchinsert.BatchInserterImpl;
+import org.neo4j.kernel.impl.util.FileUtils;
 
 public class TestBatchInsertion
 {
     private static final String PATH = "target/var/batch";
 
     @Before
-    public void cleanDirectory()
+    public void cleanDirectory() throws Exception
     {
-        Neo4jTestCase.deleteFileOrDirectory( new File( PATH ) );
+        FileUtils.deleteRecursively( new File( PATH ) );
     }
     
     @Ignore
