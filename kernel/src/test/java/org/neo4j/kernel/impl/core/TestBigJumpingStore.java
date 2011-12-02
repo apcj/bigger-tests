@@ -45,7 +45,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.Config;
-import org.neo4j.kernel.HighlyConfigurableGraphDatabase;
+import org.neo4j.kernel.GraphDatabaseTestAccess;
 
 public class TestBigJumpingStore
 {
@@ -59,7 +59,7 @@ public class TestBigJumpingStore
     public void doBefore()
     {
         deleteFileOrDirectory( PATH );
-        db = new HighlyConfigurableGraphDatabase( PATH, configForNoMemoryMapping(),
+        db = new GraphDatabaseTestAccess( PATH, configForNoMemoryMapping(),
                 new JumpingIdGeneratorFactory( SIZE_PER_JUMP ),
                 new JumpingFileSystemAbstraction( SIZE_PER_JUMP ) );
     }
