@@ -308,19 +308,19 @@ public class TestUpgradeStore
         Map<Object, Object> config = MapUtil.<Object, Object>genericMap(
                 IdGeneratorFactory.class, new NoLimitidGeneratorFactory(),
                 FileSystemAbstraction.class, CommonFactories.defaultFileSystemAbstraction() );
-        RelationshipTypeStore store = new RelationshipTypeStoreWithOneOlderVersion( fileName, config, IdType.RELATIONSHIP_TYPE );
+        RelationshipTypeStore store = new RelationshipTypeStoreWithOneOlderVersion( fileName, config );
         for ( int i = 0; i < numberOfTypes; i++ )
         {
             String name = "type" + i;
             RelationshipTypeRecord record = new RelationshipTypeRecord( i );
             record.setCreated();
             record.setInUse( true );
-            int typeBlockId = (int) store.nextBlockId();
-            record.setTypeBlock( typeBlockId );
-            Collection<DynamicRecord> typeRecords = store.allocateTypeNameRecords( typeBlockId, PropertyStore.encodeString( name ) );
+            int nameId = (int) store.nextNameId();
+            record.setNameId( nameId );
+            Collection<DynamicRecord> typeRecords = store.allocateNameRecords( nameId, PropertyStore.encodeString( name ) );
             for ( DynamicRecord typeRecord : typeRecords )
             {
-                record.addTypeRecord( typeRecord );
+                record.addNameRecord( typeRecord );
             }
             store.setHighId( store.getHighId()+1 );
             store.updateRecord( record );
@@ -332,10 +332,9 @@ public class TestUpgradeStore
     {
         private boolean versionCalled;
 
-        public RelationshipTypeStoreWithOneOlderVersion( String fileName, Map<?, ?> config,
-                IdType idType )
+        public RelationshipTypeStoreWithOneOlderVersion( String fileName, Map<?, ?> config )
         {
-            super( fileName, config, idType );
+            super( fileName, config );
         }
 
         @Override
