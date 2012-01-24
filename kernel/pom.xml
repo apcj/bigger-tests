@@ -10,7 +10,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.neo4j.test</groupId>
   <artifactId>neo4j-kernel-tests</artifactId>
-  <version>1.6-SNAPSHOT</version>
+  <version>1.7-SNAPSHOT</version>
   <name>Bigger tests for Neo4j Kernel</name>
 
   <properties>
