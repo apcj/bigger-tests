@@ -22,6 +22,8 @@ package org.neo4j.kernel.impl.storemigration;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.neo4j.kernel.CommonFactories.defaultFileSystemAbstraction;
+import static org.neo4j.kernel.CommonFactories.defaultIdGeneratorFactory;
 import static org.neo4j.kernel.impl.nioneo.store.CommonAbstractStore.ALL_STORES_VERSION;
 import static org.neo4j.kernel.impl.storemigration.MigrationTestUtils.allStoreFilesHaveVersion;
 import static org.neo4j.kernel.impl.storemigration.MigrationTestUtils.alwaysAllowed;
@@ -57,7 +59,7 @@ public class StoreUpgraderInterruptionTest
 
         try
         {
-            new StoreUpgrader( defaultConfig(), alwaysAllowed(), new UpgradableDatabase(), failingStoreMigrator, new DatabaseFiles() ).attemptUpgrade( new File( workingDirectory, NeoStore.DEFAULT_NAME ).getPath() );
+            newUpgrader( failingStoreMigrator, new DatabaseFiles() ).attemptUpgrade( new File( workingDirectory, NeoStore.DEFAULT_NAME ).getPath() );
             fail( "Should throw exception" );
         }
         catch ( RuntimeException e )
@@ -67,9 +69,15 @@ public class StoreUpgraderInterruptionTest
 
         assertTrue( allStoreFilesHaveVersion( workingDirectory, "v0.9.9" ) );
 
-        new StoreUpgrader( defaultConfig(), alwaysAllowed(), new UpgradableDatabase(), new StoreMigrator( new SilentMigrationProgressMonitor() ), new DatabaseFiles() ).attemptUpgrade( new File( workingDirectory, NeoStore.DEFAULT_NAME ).getPath() );
+        newUpgrader( new StoreMigrator( new SilentMigrationProgressMonitor() ), new DatabaseFiles() ).attemptUpgrade( new File( workingDirectory, NeoStore.DEFAULT_NAME ).getPath() );
 
         assertTrue( allStoreFilesHaveVersion( workingDirectory, ALL_STORES_VERSION ) );
+    }
+    
+    private StoreUpgrader newUpgrader( StoreMigrator migrator, DatabaseFiles files )
+    {
+        return new StoreUpgrader( defaultConfig(), alwaysAllowed(), new UpgradableDatabase(), migrator,
+                files, defaultIdGeneratorFactory(), defaultFileSystemAbstraction() );        
     }
 
     @Test
@@ -92,7 +100,7 @@ public class StoreUpgraderInterruptionTest
 
         try
         {
-            new StoreUpgrader( defaultConfig(), alwaysAllowed(), new UpgradableDatabase(), new StoreMigrator( new SilentMigrationProgressMonitor() ) , failsOnBackup ).attemptUpgrade( new File( workingDirectory, NeoStore.DEFAULT_NAME ).getPath() );
+            newUpgrader( new StoreMigrator( new SilentMigrationProgressMonitor() ), failsOnBackup ).attemptUpgrade( new File( workingDirectory, NeoStore.DEFAULT_NAME ).getPath() );
             fail( "Should throw exception" );
         }
         catch ( RuntimeException e )
@@ -102,7 +110,7 @@ public class StoreUpgraderInterruptionTest
 
         try
         {
-            new StoreUpgrader( defaultConfig(), alwaysAllowed(), new UpgradableDatabase(), new StoreMigrator( new SilentMigrationProgressMonitor() ) , new DatabaseFiles() ).attemptUpgrade( new File( workingDirectory, NeoStore.DEFAULT_NAME ).getPath() );
+            newUpgrader( new StoreMigrator( new SilentMigrationProgressMonitor() ) , new DatabaseFiles() ).attemptUpgrade( new File( workingDirectory, NeoStore.DEFAULT_NAME ).getPath() );
             fail( "Should throw exception" );
         }
         catch ( Exception e )

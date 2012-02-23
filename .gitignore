@@ -16,3 +16,4 @@ target
 */bin
 */pom-with-build-number.xml
 */chromedriver.log
+.externalToolBuilders/

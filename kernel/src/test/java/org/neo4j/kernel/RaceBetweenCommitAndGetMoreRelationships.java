@@ -78,7 +78,7 @@ public class RaceBetweenCommitAndGetMoreRelationships extends TimerTask
         delete( new File( path ) );
         AbstractGraphDatabase graphdb = new EmbeddedGraphDatabase( path );
         RaceBetweenCommitAndGetMoreRelationships race = instance = new RaceBetweenCommitAndGetMoreRelationships(
-                graphdb, graphdb.getConfig().getGraphDbModule().getNodeManager() );
+                graphdb, graphdb.getNodeManager() );
         try
         {
             race.execute();

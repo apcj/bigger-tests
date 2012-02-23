@@ -33,7 +33,6 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.TransactionFailureException;
 import org.neo4j.kernel.Config;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.kernel.impl.storemigration.StoreUpgrader.UnableToUpgradeException;
@@ -78,9 +77,9 @@ public class StoreUpgradeIntegrationTest
                     workingDirectory.getPath(), params );
             fail( "Should have been unable to start upgrade on old version" );
         }
-        catch ( TransactionFailureException e )
+        catch ( IllegalStateException e )
         {
-            assertTrue( IllegalStateException.class.isAssignableFrom( e.getCause().getClass() ) );
+//            assertTrue( IllegalStateException.class.isAssignableFrom( e.getCause().getClass() ) );
         }
     }
 
@@ -106,9 +105,9 @@ public class StoreUpgradeIntegrationTest
                     workingDirectory.getPath(), params );
             fail( "Should have been unable to start upgrade on old version" );
         }
-        catch ( TransactionFailureException e )
+        catch ( UnableToUpgradeException e )
         {
-            assertTrue( UnableToUpgradeException.class.isAssignableFrom( e.getCause().getClass() ) );
+//            assertTrue( UnableToUpgradeException.class.isAssignableFrom( e.getCause().getClass() ) );
         }
     }
 }

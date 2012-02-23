@@ -21,6 +21,10 @@ package org.neo4j.kernel.impl.storemigration;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.neo4j.kernel.CommonFactories.defaultFileSystemAbstraction;
+import static org.neo4j.kernel.CommonFactories.defaultIdGeneratorFactory;
+import static org.neo4j.kernel.CommonFactories.defaultLastCommittedTxIdSetter;
+import static org.neo4j.kernel.CommonFactories.defaultTxHook;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,26 +34,35 @@ import java.util.List;
 
 import org.junit.Test;
 import org.neo4j.helpers.Pair;
+import org.neo4j.kernel.impl.nioneo.store.NeoStore;
 import org.neo4j.kernel.impl.nioneo.store.PropertyBlock;
 import org.neo4j.kernel.impl.nioneo.store.PropertyRecord;
 import org.neo4j.kernel.impl.nioneo.store.PropertyStore;
 import org.neo4j.kernel.impl.nioneo.store.PropertyType;
 import org.neo4j.kernel.impl.nioneo.store.Record;
+import org.neo4j.kernel.impl.nioneo.store.StoreFactory;
 import org.neo4j.kernel.impl.util.FileUtils;
+import org.neo4j.kernel.impl.util.StringLogger;
 
 public class PropertyWriterTest
 {
-    @Test
-    public void shouldPackASeriesOfPropertiesIntoAPropertyRecord() throws IOException
+    private PropertyStore newPropertyStore() throws IOException
     {
         HashMap config = MigrationTestUtils.defaultConfig();
         File outputDir = new File( "target/outputDatabase" );
         FileUtils.deleteRecursively( outputDir );
         assertTrue( outputDir.mkdirs() );
-
-        File propertyStoreFile = new File( outputDir, "neostore.propertystore.db" );
-        PropertyStore.createStore( propertyStoreFile.getPath(), config );
-        PropertyStore propertyStore = new PropertyStore( propertyStoreFile.getPath(), config );
+        File fileName = new File( outputDir, "neostore" );
+        StoreFactory storeFactory = new StoreFactory( config, defaultIdGeneratorFactory(), defaultFileSystemAbstraction(),
+                defaultLastCommittedTxIdSetter(), StringLogger.DEV_NULL, defaultTxHook() );
+        NeoStore neoStore = storeFactory.createNeoStore( fileName.getAbsolutePath() );
+        return neoStore.getPropertyStore();
+    }
+    
+    @Test
+    public void shouldPackASeriesOfPropertiesIntoAPropertyRecord() throws IOException
+    {
+        PropertyStore propertyStore = newPropertyStore();
 
         assertEquals( 0, propertyStore.getHighId() );
 
@@ -75,15 +88,8 @@ public class PropertyWriterTest
     public void shouldStoreMultiplePropertiesAcrossASeriesOfRecords() throws IOException
     {
         final int OneBlockPropertyBlockCount = 100;
-        HashMap config = MigrationTestUtils.defaultConfig();
-        File outputDir = new File( "target/outputDatabase" );
-        FileUtils.deleteRecursively( outputDir );
-        assertTrue( outputDir.mkdirs() );
-
-        File propertyStoreFile = new File( outputDir, "neostore.propertystore.db" );
-        PropertyStore.createStore( propertyStoreFile.getPath(), config );
-        PropertyStore propertyStore = new PropertyStore( propertyStoreFile.getPath(), config );
-
+        PropertyStore propertyStore = newPropertyStore();
+        
         assertEquals( 0, propertyStore.getHighId() );
 
         PropertyWriter propertyWriter = new PropertyWriter( propertyStore );

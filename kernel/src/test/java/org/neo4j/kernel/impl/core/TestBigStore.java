@@ -41,7 +41,6 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
@@ -57,7 +56,7 @@ public class TestBigStore implements RelationshipType
     private static final RelationshipType OTHER_TYPE = DynamicRelationshipType.withName( "OTHER" );
     
     private static final String PATH = "target/var/big";
-    private GraphDatabaseService db;
+    private AbstractGraphDatabase db;
     public @Rule
     TestName testName = new TestName()
     {
@@ -298,6 +297,6 @@ public class TestBigStore implements RelationshipType
 
     private void setHighId( IdType type, long highId )
     {
-        ((AbstractGraphDatabase) db).getConfig().getIdGeneratorFactory().get( type ).setHighId( highId );
+        db.getIdGeneratorFactory().get( type ).setHighId( highId );
     }
 }

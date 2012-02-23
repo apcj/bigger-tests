@@ -23,6 +23,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.neo4j.helpers.collection.MapUtil.stringMap;
+import static org.neo4j.kernel.CommonFactories.defaultFileSystemAbstraction;
+import static org.neo4j.kernel.CommonFactories.defaultIdGeneratorFactory;
 import static org.neo4j.kernel.Config.ALLOW_STORE_UPGRADE;
 import static org.neo4j.kernel.Config.ARRAY_BLOCK_SIZE;
 import static org.neo4j.kernel.Config.KEEP_LOGICAL_LOGS;
@@ -44,12 +46,13 @@ import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.TransactionFailureException;
 import org.neo4j.helpers.UTF8;
-import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.kernel.CommonFactories;
+import org.neo4j.kernel.ConfigProxy;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.kernel.IdGeneratorFactory;
 import org.neo4j.kernel.IdType;
 import org.neo4j.kernel.impl.batchinsert.BatchInserterImpl;
+import org.neo4j.kernel.impl.util.StringLogger;
 
 @Ignore
 public class TestUpgradeStore
@@ -305,10 +308,9 @@ public class TestUpgradeStore
     private void createManyRelationshipTypes( String path, int numberOfTypes )
     {
         String fileName = new File( path, "neostore.relationshiptypestore.db" ).getAbsolutePath();
-        Map<Object, Object> config = MapUtil.<Object, Object>genericMap(
-                IdGeneratorFactory.class, new NoLimitidGeneratorFactory(),
-                FileSystemAbstraction.class, CommonFactories.defaultFileSystemAbstraction() );
-        RelationshipTypeStore store = new RelationshipTypeStoreWithOneOlderVersion( fileName, config );
+        DynamicStringStore stringStore = new DynamicStringStore( fileName + ".names", null, IdType.RELATIONSHIP_TYPE_BLOCK,
+                CommonFactories.defaultIdGeneratorFactory(), defaultFileSystemAbstraction(), StringLogger.SYSTEM );
+        RelationshipTypeStore store = new RelationshipTypeStoreWithOneOlderVersion( fileName, defaultIdGeneratorFactory(), stringStore );
         for ( int i = 0; i < numberOfTypes; i++ )
         {
             String name = "type" + i;
@@ -332,9 +334,10 @@ public class TestUpgradeStore
     {
         private boolean versionCalled;
 
-        public RelationshipTypeStoreWithOneOlderVersion( String fileName, Map<?, ?> config )
+        public RelationshipTypeStoreWithOneOlderVersion( String fileName, IdGeneratorFactory idGenFactory, DynamicStringStore stringStore )
         {
-            super( fileName, config );
+            super( fileName, ConfigProxy.config( stringMap(), Configuration.class ),
+                    new NoLimitIdGeneratorFactory(), defaultFileSystemAbstraction(), StringLogger.SYSTEM, stringStore );
         }
 
         @Override
@@ -356,8 +359,8 @@ public class TestUpgradeStore
             }
         }
     }
-
-    private static class NoLimitidGeneratorFactory implements IdGeneratorFactory
+    
+    private static class NoLimitIdGeneratorFactory implements IdGeneratorFactory
     {
         private final Map<IdType, IdGenerator> generators = new HashMap<IdType, IdGenerator>();
 
@@ -377,11 +380,6 @@ public class TestUpgradeStore
         public void create( String fileName )
         {
             IdGeneratorImpl.createGenerator( fileName );
-        }
-
-        public void updateIdGenerators( NeoStore neoStore )
-        {
-            neoStore.updateIdGenerators();
         }
     }
 }

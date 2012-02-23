@@ -20,18 +20,16 @@
 package org.neo4j.kernel.impl.transaction.xaframework;
 
 import static org.junit.Assert.fail;
+import static org.neo4j.kernel.CommonFactories.defaultFileSystemAbstraction;
+import static org.neo4j.kernel.CommonFactories.defaultLogBufferFactory;
 import static org.neo4j.kernel.impl.util.FileUtils.copyRecursively;
 import static org.neo4j.kernel.impl.util.FileUtils.deleteRecursively;
+import static org.neo4j.kernel.impl.util.StringLogger.DEV_NULL;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.neo4j.kernel.CommonFactories;
-import org.neo4j.kernel.impl.nioneo.store.FileSystemAbstraction;
-import org.neo4j.kernel.impl.util.StringLogger;
 
 public class TestUpgradeOneDotFourToFive
 {
@@ -47,12 +45,13 @@ public class TestUpgradeOneDotFourToFive
     public void cannotRecoverNoncleanShutdownDbWithOlderLogFormat() throws Exception
     {
         copyRecursively( new File( TestUpgradeOneDotFourToFive.class.getResource( "non-clean-1.4.2-db/neostore" ).getFile() ).getParentFile(), PATH );
-        Map<Object, Object> config = new HashMap<Object, Object>();
-        config.put( "store_dir", PATH.getAbsolutePath() );
-        config.put( StringLogger.class, StringLogger.DEV_NULL );
-        config.put( FileSystemAbstraction.class, CommonFactories.defaultFileSystemAbstraction() );
-        config.put( LogBufferFactory.class, CommonFactories.defaultLogBufferFactory() );
-        XaLogicalLog log = new XaLogicalLog( resourceFile(), null, null, null, config );
+//        Map<Object, Object> config = new HashMap<Object, Object>();
+//        config.put( "store_dir", PATH.getAbsolutePath() );
+//        config.put( StringLogger.class, StringLogger.DEV_NULL );
+//        config.put( FileSystemAbstraction.class, CommonFactories.defaultFileSystemAbstraction() );
+//        config.put( LogBufferFactory.class, CommonFactories.defaultLogBufferFactory() );
+        
+        XaLogicalLog log = new XaLogicalLog( resourceFile(), null, null, null, defaultLogBufferFactory(), defaultFileSystemAbstraction(), DEV_NULL );
         log.open();
         fail( "Shouldn't be able to start" );
     }

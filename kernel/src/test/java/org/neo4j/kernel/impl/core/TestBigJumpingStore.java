@@ -38,30 +38,49 @@ import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.Config;
-import org.neo4j.kernel.GraphDatabaseTestAccess;
+import org.neo4j.kernel.IdGeneratorFactory;
+import org.neo4j.kernel.impl.nioneo.store.FileSystemAbstraction;
 
 public class TestBigJumpingStore
 {
+    private static class TestDatabase extends AbstractGraphDatabase
+    {
+        protected TestDatabase( String storeDir, Map<String, String> params )
+        {
+            super( storeDir, params );
+            run();
+        }
+        
+        @Override
+        protected IdGeneratorFactory createIdGeneratorFactory()
+        {
+            return new JumpingIdGeneratorFactory( SIZE_PER_JUMP );
+        }
+        
+        @Override
+        protected FileSystemAbstraction createFileSystemAbstraction()
+        {
+            return new JumpingFileSystemAbstraction( SIZE_PER_JUMP );
+        }
+    }
+    
     private static final int SIZE_PER_JUMP = 1000;
     private static final String PATH = "target/var/bigjump";
     private static final RelationshipType TYPE = DynamicRelationshipType.withName( "KNOWS" );
     private static final RelationshipType TYPE2 = DynamicRelationshipType.withName( "DROP_KICKS" );
-    private GraphDatabaseService db;
+    private AbstractGraphDatabase db;
 
     @Before
     public void doBefore()
     {
         deleteFileOrDirectory( PATH );
-        db = new GraphDatabaseTestAccess( PATH, configForNoMemoryMapping(),
-                new JumpingIdGeneratorFactory( SIZE_PER_JUMP ),
-                new JumpingFileSystemAbstraction( SIZE_PER_JUMP ) );
+        db = new TestDatabase( PATH, configForNoMemoryMapping() );
     }
 
     private Map<String, String> configForNoMemoryMapping()
@@ -123,7 +142,7 @@ public class TestBigJumpingStore
                 assertProperties( map( "number", nodeCount++, "string", stringValue, "array", arrayValue ), node );
                 relCount += count( node.getRelationships( Direction.OUTGOING ) );
             }
-            ((AbstractGraphDatabase)db).getConfig().getGraphDbModule().getNodeManager().clearCache();
+            db.getNodeManager().clearCache();
         }
         assertEquals( numberOfRels, relCount );
 
@@ -213,7 +232,7 @@ public class TestBigJumpingStore
                 }
                 nodeCount++;
             }
-            ((AbstractGraphDatabase)db).getConfig().getGraphDbModule().getNodeManager().clearCache();
+            db.getNodeManager().clearCache();
         }
     }
 

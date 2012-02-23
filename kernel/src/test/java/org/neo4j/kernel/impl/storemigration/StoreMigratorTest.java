@@ -24,6 +24,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.neo4j.graphdb.DynamicRelationshipType.withName;
+import static org.neo4j.kernel.CommonFactories.defaultFileSystemAbstraction;
+import static org.neo4j.kernel.CommonFactories.defaultIdGeneratorFactory;
+import static org.neo4j.kernel.CommonFactories.defaultLastCommittedTxIdSetter;
+import static org.neo4j.kernel.CommonFactories.defaultTxHook;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,9 +47,11 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.kernel.impl.nioneo.store.NeoStore;
 import org.neo4j.kernel.impl.nioneo.store.PropertyType;
+import org.neo4j.kernel.impl.nioneo.store.StoreFactory;
 import org.neo4j.kernel.impl.storemigration.legacystore.LegacyStore;
 import org.neo4j.kernel.impl.storemigration.monitoring.MigrationProgressMonitor;
 import org.neo4j.kernel.impl.util.FileUtils;
+import org.neo4j.kernel.impl.util.StringLogger;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 public class StoreMigratorTest
@@ -64,9 +70,9 @@ public class StoreMigratorTest
         assertTrue( outputDir.mkdirs() );
 
         String storeFileName = "target/outputDatabase/neostore";
-        config.put( "neo_store", storeFileName );
-        NeoStore.createStore( storeFileName, config );
-        NeoStore neoStore = new NeoStore( config );
+        StoreFactory factory = new StoreFactory( config, defaultIdGeneratorFactory(),
+                defaultFileSystemAbstraction(), defaultLastCommittedTxIdSetter(), StringLogger.DEV_NULL, defaultTxHook() );
+        NeoStore neoStore = factory.createNeoStore( storeFileName );
 
         ListAccumulatorMigrationProgressMonitor monitor = new ListAccumulatorMigrationProgressMonitor();
 
