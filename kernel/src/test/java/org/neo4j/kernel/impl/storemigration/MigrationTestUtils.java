@@ -86,6 +86,13 @@ public class MigrationTestUtils
         fileChannel.close();
     }
 
+    static void truncateToFixedLength( File storeFile, int newLength ) throws IOException
+    {
+        FileChannel fileChannel = new RandomAccessFile( storeFile, "rw" ).getChannel();
+        fileChannel.truncate( newLength );
+        fileChannel.close();
+    }
+
     public static void prepareSampleLegacyDatabase( File workingDirectory ) throws IOException
     {
         File resourceDirectory = findOldFormatStoreDirectory();

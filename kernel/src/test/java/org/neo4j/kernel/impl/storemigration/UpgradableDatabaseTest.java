@@ -23,6 +23,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 import static org.neo4j.kernel.impl.storemigration.MigrationTestUtils.changeVersionNumber;
+import static org.neo4j.kernel.impl.storemigration.MigrationTestUtils.truncateFile;
+import static org.neo4j.kernel.impl.storemigration.MigrationTestUtils.truncateToFixedLength;
 import static org.neo4j.kernel.impl.util.FileUtils.copyRecursively;
 
 import java.io.File;
@@ -31,6 +33,7 @@ import java.net.URL;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.neo4j.helpers.UTF8;
 import org.neo4j.kernel.impl.util.FileUtils;
 
 public class UpgradableDatabaseTest
@@ -68,6 +71,42 @@ public class UpgradableDatabaseTest
         copyRecursively( resourceDirectory, workingDirectory );
 
         changeVersionNumber( new File( workingDirectory, "neostore.nodestore.db" ), "v0.9.5" );
+
+        assertFalse( new UpgradableDatabase().storeFilesUpgradeable( new File( workingDirectory, "neostore" ) ) );
+    }
+
+    @Test
+    public void shouldRejectStoresIfOneFileHasNoVersionAsIfNotShutDownCleanly() throws IOException
+    {
+        URL legacyStoreResource = getClass().getResource( "legacystore/exampledb/neostore" );
+        File resourceDirectory = new File( legacyStoreResource.getFile() ).getParentFile();
+        File workingDirectory = new File( "target/" + UpgradableDatabaseTest.class.getSimpleName() );
+
+        FileUtils.deleteRecursively( workingDirectory );
+        assertTrue( workingDirectory.mkdirs() );
+
+        copyRecursively( resourceDirectory, workingDirectory );
+
+        truncateFile( new File( workingDirectory, "neostore.nodestore.db" ), "StringPropertyStore v0.9.9" );
+
+        assertFalse( new UpgradableDatabase().storeFilesUpgradeable( new File( workingDirectory, "neostore" ) ) );
+    }
+
+    @Test
+    public void shouldRejectStoresIfOneFileShorterThanExpectedVersionString() throws IOException
+    {
+        URL legacyStoreResource = getClass().getResource( "legacystore/exampledb/neostore" );
+        File resourceDirectory = new File( legacyStoreResource.getFile() ).getParentFile();
+        File workingDirectory = new File( "target/" + UpgradableDatabaseTest.class.getSimpleName() );
+
+        FileUtils.deleteRecursively( workingDirectory );
+        assertTrue( workingDirectory.mkdirs() );
+
+        copyRecursively( resourceDirectory, workingDirectory );
+
+        int shortFileLength = 5 /* (RelationshipTypeStore.RECORD_SIZE) */ * 3;
+        assertTrue( shortFileLength < UTF8.encode( "StringPropertyStore v0.9.9" ).length );
+        truncateToFixedLength( new File( workingDirectory, "neostore.relationshiptypestore.db" ), shortFileLength );
 
         assertFalse( new UpgradableDatabase().storeFilesUpgradeable( new File( workingDirectory, "neostore" ) ) );
     }
